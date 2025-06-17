@@ -11,10 +11,12 @@ export default function Role() {
 
   const [user, setUser] = useState(null)
   const [role, setRole] = useState('')
+  const [displayName, setDisplayName] = useState('')
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser)
+      setDisplayName(currentUser.displayName || '')
       if(currentUser === null) return
       getDoc(doc(db, 'users', currentUser?.uid)).then((doc) => {
         setRole(doc.data()?.role)
@@ -25,7 +27,6 @@ export default function Role() {
   }, [])
 
   const uid = user?.uid
-  const [displayName, setDisplayName] = useState(user?.displayName ?? '')
 
   const goToRole = async (route: string) => {
     if (!displayName.trim()) {
