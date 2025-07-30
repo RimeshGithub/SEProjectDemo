@@ -3,18 +3,26 @@
 import Link from 'next/link'
 import { useState, useEffect, ReactNode } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { signOut } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
-import { onAuthStateChanged } from 'firebase/auth'
+import { signOut, onAuthStateChanged } from 'firebase/auth'
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  onSnapshot
+} from 'firebase/firestore'
 import { auth, db } from '../../lib/firebase'
 import Image from 'next/image'
 import type { StaticImageData } from 'next/image'
 import defaultProfilePic from '../../public/avatar.jpeg'
+import Logo from '../../public/logo.png'
+import './style.css'
 
-import { 
-  FaChartBar, 
-  FaMoneyBillWave, 
-  FaHammer, 
+import {
+  FaChartBar,
+  FaMoneyBillWave,
+  FaHammer,
   FaBell,
   FaBuilding,
   FaSignOutAlt,
@@ -30,11 +38,13 @@ export default function TenantLayout({ children }: { children: ReactNode }) {
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [profilePic, setProfilePic] = useState<string | StaticImageData>(defaultProfilePic)
+  const [notifCount, setNotifCount] = useState(0)
 
+  // Auth & Role
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser)
-      if(currentUser === null) return
+      if (currentUser === null) return
       getDoc(doc(db, 'users', currentUser?.uid)).then((doc) => {
         setRole(doc.data()?.role)
       })
@@ -43,6 +53,7 @@ export default function TenantLayout({ children }: { children: ReactNode }) {
     return () => unsubscribe()
   }, [])
 
+  // User Info
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user) return
@@ -67,6 +78,22 @@ export default function TenantLayout({ children }: { children: ReactNode }) {
     fetchUserData()
   }, [user])
 
+  // Notification count
+  useEffect(() => {
+    if (!user || !user.email) return
+
+    const notifQuery = query(
+      collection(db, 'tenant_notifications'),
+      where('tenantEmail', '==', user.email)
+    )
+
+    const unsubscribe = onSnapshot(notifQuery, (snapshot) => {
+      setNotifCount(snapshot.size) // or filter for unread
+    })
+
+    return () => unsubscribe()
+  }, [user])
+
   const handleLogout = async () => {
     await signOut(auth)
     router.push('/login')
@@ -82,60 +109,59 @@ export default function TenantLayout({ children }: { children: ReactNode }) {
     { name: 'Suggestions', path: '/tenant_portal/suggestions', icon: <FaComment /> }
   ]
 
-  if(!user) return <p className="info-text">You are not logged in</p>
+  if (!user) return <p className="info-text">You are not logged in</p>
+  if (role === 'landlord') return <p className="info-text">You are logged in as a landlord</p>
 
-  if (role === 'landlord' && user) return <p className="info-text">You are logged in as a landlord</p>
-
-  if (role === 'tenant' && user) return (
-      <div className="root">
-        <aside className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
-          <div className="logo">
-            <span className="brand">RentAssist</span>
-            <span className="subtitle">Tenant Portal</span>
+  return (
+    <div className="root">
+      <aside className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
+        <div className="logo-section">
+          <Image className="logo" src={Logo} alt="Logo" height={55} width={200} />
+          <span className="subtitle">Tenant Portal</span>
+        </div>
+        <nav className="main-menu">
+          <div className="menu-title">Main Menu</div>
+          <ul>
+            {menuItems.map(item => (
+              <Link href={item.path} key={item.path}>
+                <li className={pathname === item.path ? 'active' : ''}>
+                  <span className="icon">{item.icon}</span>
+                  <span className="label">{item.name}</span>
+                </li>
+              </Link>
+            ))}
+          </ul>
+        </nav>
+        <div className="profile">
+          <Image src={profilePic} alt="Profile Pic" className="avatar" height={40} width={40} />
+          <div className="profile-info">
+            <div className="profile-name">{displayName}</div>
+            <div className="profile-email">{email}</div>
           </div>
-          <nav className="main-menu">
-            <div className="menu-title">Main Menu</div>
-            <ul>
-              {menuItems.map(item => (
-                <Link href={item.path} key={item.path}>
-                  <li className={pathname === item.path ? 'active' : ''}>
-                    <span className="icon">{item.icon}</span>
-                    <span className="label">{item.name}</span>
-                  </li>
-                </Link>
-              ))}
-            </ul>
-          </nav>
-          <div className="profile">
-            <Image src={profilePic} alt="Profile Pic" className="avatar" height={40} width={40} />
-            <div className="profile-info">
-              <div className="profile-name">{displayName}</div>
-              <div className="profile-email">{email}</div>
-            </div>
-            <button className="logout-btn" onClick={handleLogout}>
-              <span>Logout <FaSignOutAlt /></span>
-            </button>
-          </div>
-        </aside>
+          <button className="logout-btn" onClick={handleLogout}>
+            <span>Logout <FaSignOutAlt /></span>
+          </button>
+        </div>
+      </aside>
 
-        <main className={`main-content ${isSidebarOpen ? 'with-sidebar' : 'full-width'}`}>
-          <header className="main-header">
-            <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
-              {isSidebarOpen ? '✕' : '☰'}
-            </button>
-            <input className="search" placeholder="Search..." />
-            <div className="header-actions">
+      <main className={`main-content ${isSidebarOpen ? 'with-sidebar' : 'full-width'}`}>
+        <header className="main-header">
+          <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
+            {isSidebarOpen ? '✕' : '☰'}
+          </button>
+          <input className="search" placeholder="Search..." />
+          <div className="header-actions">
+            <Link href={'/tenant_portal/notifications'}>
               <span className="notif-badge">
-                <FaBell /> 
-                <span>3</span>
+                <FaBell />
+                {notifCount > 0 && <span>{notifCount}</span>}
               </span>
-            </div>
-          </header>
+            </Link>
+          </div>
+        </header>
 
-          {children}
-        </main>
-      </div>
-   )
+        {children}
+      </main>
+    </div>
+  )
 }
-
-  

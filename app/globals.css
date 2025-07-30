@@ -1,4 +1,13 @@
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities; */
+
+
 /* Global Reset */
+* {
+  font-family: arial;
+}
+
 body {
   margin: 0;
   font-family: 'Segoe UI', Arial, sans-serif;
@@ -32,6 +41,54 @@ a {
   margin: 5rem 0;
 }
 
+.span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+
+/* Loading Symbol */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 50vh;
+}
+
+.spinner {
+  width: 64px;
+  height: 64px;
+  border: 6px solid #3b82f6;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  margin-top: 16px;
+  font-size: 1.2rem;
+  color: white;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+}
+
 
 /* Home Page & Role Page */
 .home-container, .role-container {
@@ -47,7 +104,7 @@ a {
   padding: 0 5rem;
 }
 
-.home-title, .role-title {
+.role-title {
   font-size: 3rem;
   margin-bottom: 20px;
   font-weight: bold;
@@ -58,6 +115,7 @@ a {
   font-size: 1.2rem;
   line-height: 1.6;
   margin-bottom: 30px;
+  margin-top: 40px;
 }
 
 .login-button, .role-button {
@@ -117,13 +175,10 @@ a {
   gap: 1.5rem;
 }
 
-/* Title */
-.login-form-title {
-  text-align: center;
-  color: #0284c7;
-  margin-bottom: 1rem;
-  font-size: 2rem;
-  font-weight: 700;
+/* Logo */
+.login-form-logo {
+  margin: 0 auto;
+  filter: brightness(0.8);
 }
 
 /* Inputs */
@@ -231,7 +286,7 @@ a {
 
 
 /* Logo */
-.logo {
+.logo-section{
   margin-bottom: 2rem;
   border-bottom: 2px solid #334155;
   padding: 0 1rem 0.8rem;
@@ -240,11 +295,8 @@ a {
   gap: 0.5rem;
 }
 
-.brand {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #38bdf8;
-  display: block;
+.logo {
+  margin-bottom: 0.5rem;
 }
 
 .subtitle {
@@ -277,6 +329,7 @@ a {
   color: #f1f5f9;
   transition: background 0.2s;
   display: flex;
+  align-items: center;
   gap: 0.9rem;
 }
 
@@ -331,6 +384,7 @@ a {
 .profile-email {
   font-size: 0.9rem;
   color: #64748b;
+  margin-top: 0.3rem;
 }
 
 .logout-btn {
@@ -412,6 +466,9 @@ a {
   padding: 0.5rem 0.7rem;
   font-size: 1.3rem;
   cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .notif-badge:hover {
@@ -427,20 +484,27 @@ a {
   font-size: 0.7rem;
   font-weight: bold;
   border-radius: 50%;
-  padding: 0.2rem 0.3rem;
+  padding: 0.3rem;
   min-width: 12px;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 
-/* Welcome Section */
-.welcome-section h2 {
+/* Heading */
+.heading-h2 {
   margin: 1rem 0 0.5rem;
   font-size: 2rem;
   color: #38bdf8;
 }
 
-.welcome-section p {
+.heading-h3 {
+  margin-bottom: 1rem;
+  color: #38bdf8;
+}
+
+.heading-p {
   color: #94a3b8;
   margin-bottom: 2rem;
 }
@@ -480,33 +544,6 @@ a {
 
 
 /* Tenants Table */
-.tenant-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.add-tenant-button {
-  background: #0ea5e9;
-  color: #f8fafc;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  font-size: 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.add-tenant-button:active {
-  background: #38bdf8;
-}
-
-.tenant-section h3,
-.property-section h3 {
-  color: #38bdf8;
-  margin-bottom: 1.5rem;
-}
-
 .tenant-section {
   margin-bottom: 2rem;
   flex: 2;

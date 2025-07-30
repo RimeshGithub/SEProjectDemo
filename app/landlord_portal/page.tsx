@@ -10,9 +10,9 @@ import {
 export default function Home() {
   return (
     <>
-      <section className="welcome-section">
-        <h2>Dashboard</h2>
-        <p>Here's an overview of your tenants, properties and recent activities</p>
+      <section>
+        <h2 className='heading-h2'>Dashboard</h2>
+        <p className='heading-p'>Here's an overview of your tenants, properties and recent activities</p>
       </section>
 
       <section className="metrics-grid">

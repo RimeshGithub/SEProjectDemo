@@ -11,6 +11,7 @@ import {
 import { auth, db } from '../../lib/firebase'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
 import Image from 'next/image'
+import Logo from '../../public/logo.png'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
@@ -85,7 +86,7 @@ export default function LoginPage() {
   return (
     <div className="login-container">
       <div className="login-form-wrapper">
-        <h2 className="login-form-title">RentAssist</h2>
+        <Image className="login-form-logo" src={Logo} alt="Logo" height={55} width={200} />
         <form className="login-form">
           <input
             type="email"

@@ -3,20 +3,21 @@
 import Link from 'next/link'
 import { useState, useEffect, ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
-import { signOut } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
-import { onAuthStateChanged } from 'firebase/auth'
+import { signOut, onAuthStateChanged } from 'firebase/auth'
+import { doc, getDoc, onSnapshot } from 'firebase/firestore'
 import { auth, db } from '../../lib/firebase'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import type { StaticImageData } from 'next/image'
 import defaultProfilePic from '../../public/avatar.jpeg'
+import Logo from '../../public/logo.png'
+import './style.css'
 
-import { 
-  FaChartBar, 
-  FaUsers, 
-  FaMoneyBillWave, 
-  FaHammer, 
+import {
+  FaChartBar,
+  FaUsers,
+  FaMoneyBillWave,
+  FaHammer,
   FaBell,
   FaBuilding,
   FaSignOutAlt,
@@ -32,43 +33,42 @@ export default function LandlordLayout({ children }: { children: ReactNode }) {
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [profilePic, setProfilePic] = useState<string | StaticImageData>(defaultProfilePic)
+  const [notifCount, setNotifCount] = useState(0)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser)
-      if(currentUser === null) return
-      getDoc(doc(db, 'users', currentUser?.uid)).then((doc) => {
-        setRole(doc.data()?.role)
+      if (!currentUser) return
+
+      getDoc(doc(db, 'users', currentUser.uid)).then((docSnap) => {
+        const data = docSnap.data()
+        setRole(data?.role || '')
+        setDisplayName(data?.displayName || '')
+        setEmail(data?.email || '')
+        setProfilePic(currentUser.photoURL || defaultProfilePic)
       })
+
+      // Listen to notification count in real-time
+      const notifRef = doc(db, 'landlord_notifications', currentUser.uid)
+      const unsubNotif = onSnapshot(notifRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data()
+          const total =
+            (data.joinRequestCount || 0) +
+            (data.maintenanceCount || 0) +
+            (data.suggestionCount || 0)
+          setNotifCount(total)
+        } else {
+          setNotifCount(0)
+        }
+      })
+
+      return () => unsubNotif()
     })
 
     return () => unsubscribe()
   }, [])
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!user) return
-
-      try {
-        const userRef = doc(db, 'users', user.uid)
-        const userSnap = await getDoc(userRef)
-
-        if (userSnap.exists()) {
-          const data = userSnap.data()
-          setDisplayName(data.displayName || '')
-          setEmail(data.email || '')
-          setProfilePic(user.photoURL || defaultProfilePic)
-        } else {
-          console.warn('User document not found')
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error)
-      }
-    }
-
-    fetchUserData()
-  }, [user])
-  
   const handleLogout = async () => {
     await signOut(auth)
     router.push('/login')
@@ -85,15 +85,14 @@ export default function LandlordLayout({ children }: { children: ReactNode }) {
     { name: 'Suggestions', path: '/landlord_portal/suggestions', icon: <FaComment /> }
   ]
 
-  if(!user) return <p className="info-text">You are not logged in</p>
+  if (!user) return <p className="info-text">You are not logged in</p>
+  if (role === 'tenant') return <p className="info-text">You are logged in as a tenant</p>
 
-  if (role === 'tenant' && user) return <p className="info-text">You are logged in as a tenant</p>
-
-  if (role === 'landlord' && user) return (
+  return (
     <div className="root">
       <aside className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
-        <div className="logo">
-          <span className="brand">RentAssist</span>
+        <div className="logo-section">
+          <Image className="logo" src={Logo} alt="Logo" height={55} width={200} />
           <span className="subtitle">Landlord Portal</span>
         </div>
         <nav className="main-menu">
@@ -128,10 +127,12 @@ export default function LandlordLayout({ children }: { children: ReactNode }) {
           </button>
           <input className="search" placeholder="Search..." />
           <div className="header-actions">
-            <span className="notif-badge">
-              <FaBell /> 
-              <span>3</span>
-            </span>
+            <Link href={'/landlord_portal/notifications'}>
+              <span className="notif-badge">
+                <FaBell />
+                {notifCount > 0 && <span>{notifCount}</span>}
+              </span>
+            </Link>
           </div>
         </header>
 
