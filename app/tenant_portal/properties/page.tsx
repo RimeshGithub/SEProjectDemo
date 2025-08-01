@@ -14,9 +14,9 @@ import {
   increment
 } from 'firebase/firestore'
 import { onAuthStateChanged } from 'firebase/auth'
-import { FaBuilding, FaMapMarked, FaSignOutAlt } from 'react-icons/fa'
+import { FaBuilding, FaMapMarked, FaSignOutAlt, FaInfoCircle } from 'react-icons/fa'
 
-export default function TenantDashboard() {
+export default function PropertiesPage() {
   const [user, setUser] = useState(null)
   const [availableProperties, setAvailableProperties] = useState([])
   const [joinedProperties, setJoinedProperties] = useState([])
@@ -25,6 +25,8 @@ export default function TenantDashboard() {
   const [joinedSearch, setJoinedSearch] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [joinRequestedMap, setJoinRequestedMap] = useState({})
+  const [requestToJoin, setRequestToJoin] = useState({})
+  const [requestText, setRequestText] = useState({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -66,12 +68,25 @@ export default function TenantDashboard() {
       joinMap[prop.id] = requestSnap.docs.some(d => d.data().email === email)
     }
 
+    const requestToJoinMap = {}
+    for (const prop of all){
+      const requestRef = collection(doc(db, 'properties', prop.id), 'joinRequests')
+      const requestSnap = await getDocs(requestRef)
+      requestToJoinMap[prop.id] = requestSnap.docs.some(d => d.data().email === email)
+    }
+
+    setRequestToJoin(requestToJoinMap)
     setJoinRequestedMap(joinMap)
     setLoading(false)
   }
 
-  const handleJoin = async (propertyId: string) => {
+  const handleJoin = async (propertyId: string, request: string) => {
     if (!user?.email) return
+
+    setRequestToJoin(prev => ({
+      ...prev,
+      [propertyId]: false
+    }))
 
     try {
       const requestRef = doc(db, 'properties', propertyId)
@@ -94,6 +109,7 @@ export default function TenantDashboard() {
         name: displayName || 'Unknown',
         email: user.email,
         photoURL: user.photoURL || '',
+        request: request || '',
         requestedAt: new Date()
       }
 
@@ -195,12 +211,37 @@ export default function TenantDashboard() {
                     </span>
                     <button
                       className="join-btn"
-                      onClick={() => handleJoin(property.id)}
+                      disabled={joinRequestedMap[property.id]}
+                      onClick={() => requestToJoin[property.id] ? setRequestToJoin(prev => ({ ...prev, [property.id]: false })) : setRequestToJoin(prev => ({ ...prev, [property.id]: true }))}
                     >
-                      {joinRequestedMap[property.id] ? 'Requested' : 'Request to Join'}
+                      {joinRequestedMap[property.id] ? 'Requested' : requestToJoin[property.id] ? 'Cancel Request' : 'Request to Join'}
                     </button>
                   </div>
-                  {property.description && <p className='join-description'><strong>Description: </strong>{property.description}</p>}
+                  {property.description && 
+                    <details className="property-info">
+                      <summary className="span" style={{ cursor: 'pointer' }}>
+                        <FaInfoCircle /><h4>Description</h4>
+                      </summary>
+                      {property.description}
+                    </details>
+                  }
+                  {requestToJoin[property.id] && !joinRequestedMap[property.id] && (
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+                      <textarea 
+                        className="textarea"
+                        placeholder="Write your request as well as contact details (optional)"
+                        value={requestText[property.id]}
+                        onChange={(e) => setRequestText(prev => ({ ...prev, [property.id]: e.target.value }))}
+                        style={{ width: '90%' }}
+                      />
+                      <button
+                        className="join-btn"
+                        onClick={() => handleJoin(property.id, requestText[property.id])}
+                      >
+                        Submit Request
+                      </button>
+                    </div>  
+                  )}
                 </li>
               ))}
             </ul>
@@ -231,6 +272,9 @@ export default function TenantDashboard() {
                   <div className="join-details">
                     <span><FaMapMarked /> {property.location}</span>
                     <span>Owner: {property.ownerName}</span>
+                    <span>
+                      Rooms: {(property.tenants?.length || 0)} / {property.rooms || 0}
+                    </span>
                     <button
                       className="leave-btn"
                       onClick={() => handleLeave(property.id)}
@@ -238,6 +282,14 @@ export default function TenantDashboard() {
                       <FaSignOutAlt /> Leave
                     </button>
                   </div>
+                  {property.description && 
+                    <details className="property-info">
+                      <summary className="span" style={{ cursor: 'pointer' }}>
+                        <FaInfoCircle /><h4>Description</h4>
+                      </summary>
+                      {property.description}
+                    </details>
+                  }
                 </li>
               ))}
             </ul>

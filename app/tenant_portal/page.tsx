@@ -1,136 +1,103 @@
-// Import Font Awesome icons
+'use client'
+
+import Loading from '../components/loading'
+import { useEffect, useState } from 'react'
+import { db, auth } from '../../lib/firebase'
+import {
+  collection,
+  getDocs,
+  query
+} from 'firebase/firestore'
+import { onAuthStateChanged } from 'firebase/auth'
+
 import {  
-  FaUsers, 
-  FaDollarSign, 
-  FaHammer,
-  FaBuilding,
-  FaPercentage
+  FaBuilding
 } from 'react-icons/fa'
 
 export default function Home() {
+  const [availableProperties, setAvailableProperties] = useState([])
+  const [joinedProperties, setJoinedProperties] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (!currentUser) return
+      fetchProperties(currentUser.email)
+    })
+    return () => unsubscribe()
+  }, [])
+
+  const fetchProperties = async (email: string) => {
+    setLoading(true)
+    const q = query(collection(db, 'properties'))
+    const snapshot = await getDocs(q)
+    const all = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+
+    const joined = all.filter((prop: any) =>
+      (prop.tenants || []).some((t: any) => t.email === email)
+    )
+
+    const notJoined = all.filter((prop: any) =>
+      !(prop.tenants || []).some((t: any) => t.email === email) &&
+      (prop.tenants?.length || 0) < (prop.rooms || 0) // <-- exclude full properties
+    )
+
+    setJoinedProperties(joined)
+    setAvailableProperties(notJoined)
+
+    setLoading(false)
+  }
+
+  if (loading) return <Loading />
+
   return (
     <>
       <section>
         <h2 className="heading-h2">Dashboard</h2>
-        <p className="heading-p">Here's an overview of your tenants, properties and recent activities</p>
+        <p className="heading-p">Here's an overview of joined properties and available properties</p>
       </section>
 
       <section className="metrics-grid">
         <div className="metric-card">
-          <div className="metric-label">Total Revenue <FaDollarSign /></div>
-          <div className="metric-value">$12,500</div>
+          <div className="metric-label">Joined Properties <FaBuilding /></div>
+          <div className="metric-value">{joinedProperties.length}</div>
         </div>
         <div className="metric-card">
-          <div className="metric-label">Tenants <FaUsers /></div>
-          <div className="metric-value">18</div>
-        </div>
-        <div className="metric-card">
-          <div className="metric-label">Properties <FaBuilding /></div>
-          <div className="metric-value">6</div>
-        </div>
-        <div className="metric-card">
-          <div className="metric-label">Occupancy Rate <FaPercentage /></div>
-          <div className="metric-value">94%</div>
+          <div className="metric-label">Available Properties <FaBuilding /></div>
+          <div className="metric-value">{availableProperties.length}</div>
         </div>
       </section>
 
-      <section className="tenant-activity-wrapper">
-        <section className="tenant-section">
-          <h3>Tenants</h3>
-          <table className="tenant-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Unit</th>
-                <th>Rent</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="name">
-                  <img src="/avatar.jpeg" alt="Profile Pic" className="avatar" />
-                  Jane Doe
-                </td>
-                <td>101A</td>
-                <td>$1,200</td>
-                <td><span className="status paid">Paid</span></td>
-              </tr>
-              <tr>
-                <td className="name">
-                  <img src="/avatar.jpeg" alt="Profile Pic" className="avatar" />
-                  Mike Smith
-                </td>
-                <td>202B</td>
-                <td>$1,050</td>
-                <td><span className="status overdue">Overdue</span></td>
-              </tr>
-              <tr>
-                <td className="name">
-                  <img src="/avatar.jpeg" alt="Profile Pic" className="avatar" />
-                  Linda Lee
-                </td>
-                <td>303C</td>
-                <td>$1,300</td>
-                <td><span className="status paid">Paid</span></td>
-              </tr>
-            </tbody>
-          </table>
+      <section className="tenant-activity-wrapper" style={{ display: 'flex', flexDirection: 'column' }}>
+        <section className="property-section">
+          <h3>Joined Properties</h3>
+          <div className="property-cards" style={{ flexDirection: 'row' }}>
+            {joinedProperties.length !=0 ? joinedProperties.slice(0, 3).map((property, idx) => (
+              <div className="property-card" key={idx} style={{ maxWidth: '300px' }}>
+                <div className="property-title">{property.name}</div>
+                <div>Location: {property.location}</div>
+                <div>Rooms: {property.rooms}</div>
+                <div>Tenants: {property.tenants.length}</div>
+                <div>Owner: {property.ownerName}</div>
+              </div>
+            )) : "No joined properties"}
+          </div>
         </section>
 
-        <section className="recent-activities">
-            <h3>Recent Activities</h3>
-            <div className="activity-list">
-                <div className="activity-item">
-                    <div className="activity-icon"><FaDollarSign /></div>
-                    <div className="activity-content">
-                        <div className="description">Sarah Johnson paid rent <span className="amount">$1,200</span></div>
-                        <div className="time">2 hours ago</div>
-                    </div>
-                </div>
-                <div className="activity-item">
-                    <div className="activity-icon"><FaHammer /></div>
-                    <div className="activity-content">
-                        <div className="description">New maintenance request</div>
-                        <div className="location">Oak Street #3</div>
-                        <div className="time">4 hours ago</div>
-                    </div>
-                </div>
-                <div className="activity-item">
-                    <div className="activity-icon"><FaUsers /></div>
-                    <div className="activity-content">
-                        <div className="description">New tenant application</div>
-                        <div className="location">Downtown Loft #8</div>
-                        <div className="time">1 day ago</div>
-                    </div>
-                </div>
-                <div className="activity-item">
-                    <div className="activity-icon"><FaDollarSign /></div>
-                    <div className="activity-content">
-                        <div className="description">Emily Davis paid rent <span className="amount">$2,200</span></div>
-                        <div className="time">2 days ago</div>
-                    </div>
-                </div>
-            </div>
+        <section className="property-section">
+            <h3>Available Properties</h3>
+            <div className="property-cards" style={{ flexDirection: 'row' }}>
+            {availableProperties.length != 0 ? availableProperties.slice(0, 3).map((property, idx) => (
+              <div className="property-card" key={idx} style={{ maxWidth: '300px' }}>
+                <div className="property-title">{property.name}</div>
+                <div>Location: {property.location}</div>
+                <div>Rooms: {property.rooms}</div>
+                <div>Tenants: {property.tenants.length}</div>
+                <div>Owner: {property.ownerName}</div>
+              </div>
+            )) : "No available properties"}
+          </div>
         </section>
-      </section>
-
-      <section className="property-section">
-        <h3>Properties Overview</h3>
-        <div className="property-cards">
-          <div className="property-card">
-            <div className="property-title">Sunset Apartments</div>
-            <div>Units: 10</div>
-            <div>Occupied: 9</div>
-            <div>Revenue: $8,500</div>
-          </div>
-          <div className="property-card">
-            <div className="property-title">Lakeside Villas</div>
-            <div>Units: 8</div>
-            <div>Occupied: 7</div>
-            <div>Revenue: $4,000</div>
-          </div>
-        </div>
       </section>
     </>
   )

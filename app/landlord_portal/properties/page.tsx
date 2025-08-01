@@ -20,7 +20,7 @@ import Image from 'next/image'
 import { FaUsers, FaBuilding, FaMapMarked, FaDoorOpen, FaInfoCircle } from 'react-icons/fa'
 import defaultProfilePic from '../../../public/avatar.jpeg'
 
-export default function Properties() {
+export default function PropertiesPage() {
   const [propertyName, setPropertyName] = useState('')
   const [location, setLocation] = useState('')
   const [description, setDescription] = useState('')
@@ -254,9 +254,12 @@ export default function Properties() {
                   </div>
 
                   {property.description && (
-                    <span className="property-info span">
-                      <FaInfoCircle /><h4>Description: {property.description}</h4>
-                    </span>
+                      <details className="property-info">
+                        <summary className="span" style={{ cursor: 'pointer' }}>
+                          <FaInfoCircle /><h4>Description</h4>
+                        </summary>
+                        {property.description}
+                      </details> 
                   )}
 
                   {visibleTenants[property.id] && (
@@ -297,22 +300,34 @@ export default function Properties() {
           {allJoinRequests.length > 0 ? (
             <ul className="join-requests-list">
               {allJoinRequests.map((req, idx) => (
-                <li key={idx} className="join-request-item">
-                  <div className="tenant-info">
-                    <Image src={req.photoURL || defaultProfilePic} alt="Profile Pic" className="avatar" width={40} height={40} />
+                <li key={idx} className="join-request-item" style={{ paddingTop: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div className="tenant-info">
+                      <Image src={req.photoURL || defaultProfilePic} alt="Profile Pic" className="avatar" width={40} height={40} />
+                      <div>
+                        <strong>{req.name}</strong><br />
+                        <small>{req.email}</small><br />
+                        <small><strong>Property: </strong>{req.propertyName}</small><br />
+                        <small><strong>Available Rooms: </strong>
+                          {properties.find(p => p.id === req.propertyId)?.rooms - (properties.find(p => p.id === req.propertyId)?.tenants?.length || 0)}
+                        </small>
+                      </div>
+                    </div>
                     <div>
-                      <strong>{req.name}</strong><br />
-                      <small>{req.email}</small><br />
-                      <small><strong>Property: </strong>{req.propertyName}</small><br />
-                      <small><strong>Available Rooms: </strong>
-                        {properties.find(p => p.id === req.propertyId)?.rooms - (properties.find(p => p.id === req.propertyId)?.tenants?.length || 0)}
-                      </small>
+                      <button onClick={() => handleAcceptRequest(req)} className="blue-btn">Accept</button>
+                      <button onClick={() => handleRejectRequest(req)} className="reject-btn">Reject</button>
                     </div>
                   </div>
-                  <div>
-                    <button onClick={() => handleAcceptRequest(req)} className="blue-btn">Accept</button>
-                    <button onClick={() => handleRejectRequest(req)} className="reject-btn">Reject</button>
-                  </div>
+                  {req.request && (
+                    <small>
+                      <details className="property-info">
+                        <summary className="span" style={{ cursor: 'pointer' }}>
+                          <FaInfoCircle /><h4>Request Details</h4>
+                        </summary>
+                        {req.request}
+                      </details>
+                    </small>
+                  )}
                 </li>
               ))}
             </ul>
@@ -346,7 +361,7 @@ export default function Properties() {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter description of the property (optional)"
+            placeholder="Enter description of the property and contact details (optional)"
             className="property-textarea"
             rows={3}
           />

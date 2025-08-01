@@ -21,7 +21,6 @@ import './style.css'
 
 import {
   FaChartBar,
-  FaMoneyBillWave,
   FaHammer,
   FaBell,
   FaBuilding,
@@ -104,7 +103,6 @@ export default function TenantLayout({ children }: { children: ReactNode }) {
   const menuItems = [
     { name: 'Dashboard', path: '/tenant_portal', icon: <FaChartBar /> },
     { name: 'Properties', path: '/tenant_portal/properties', icon: <FaBuilding /> },
-    { name: 'Payments', path: '/tenant_portal/payments', icon: <FaMoneyBillWave /> },
     { name: 'Maintenance', path: '/tenant_portal/maintenance', icon: <FaHammer /> },
     { name: 'Suggestions', path: '/tenant_portal/suggestions', icon: <FaComment /> }
   ]

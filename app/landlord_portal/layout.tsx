@@ -16,7 +16,6 @@ import './style.css'
 import {
   FaChartBar,
   FaUsers,
-  FaMoneyBillWave,
   FaHammer,
   FaBell,
   FaBuilding,
@@ -80,7 +79,6 @@ export default function LandlordLayout({ children }: { children: ReactNode }) {
     { name: 'Dashboard', path: '/landlord_portal', icon: <FaChartBar /> },
     { name: 'Tenants', path: '/landlord_portal/tenants', icon: <FaUsers /> },
     { name: 'Properties', path: '/landlord_portal/properties', icon: <FaBuilding /> },
-    { name: 'Payments', path: '/landlord_portal/payments', icon: <FaMoneyBillWave /> },
     { name: 'Maintenance', path: '/landlord_portal/maintenance', icon: <FaHammer /> },
     { name: 'Suggestions', path: '/landlord_portal/suggestions', icon: <FaComment /> }
   ]

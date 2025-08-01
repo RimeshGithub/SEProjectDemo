@@ -47,6 +47,20 @@ a {
   gap: 0.3rem;
 }
 
+.dropdown {
+  padding: 0.6rem;
+  background: #2c2c2c;
+  color: #e0e0e0;
+  border: 1px solid #444;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.dropdown option {
+  background: #e0e0e0;
+  color: #222;
+}
+
 
 /* Loading Symbol */
 .loading-container {
@@ -596,66 +610,20 @@ a {
   color: #fff;
 }
 
-
-/* Recent Activities */
-.recent-activities .activity-list{
-  background: #1e293b;
-  border-radius: 10px;
-  padding: 1.2rem 1.5rem;
-  min-width: 220px;
-  box-shadow: 0 2px 8px rgba(30, 41, 59, 0.07);
-}
-
-.recent-activities h3 {
-  color: #38bdf8;
-  margin-bottom: 1.5rem;
-}
-
-.recent-activities .activity-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.recent-activities .activity-icon {
-  font-size: 1.2rem;
-  margin-right: 0.4rem;
-}
-
-.recent-activities .activity-content {
-  flex: 1;
-}
-
-.recent-activities .activity-content .description {
-  font-weight: 500;
-  color: #ffffff;
-}
-
-.recent-activities .activity-content .amount {
-  color: #22c55e;
-  font-weight: 600;
-}
-
-.recent-activities .activity-content .time, 
-.recent-activities .activity-content .location {
-  font-size: 0.85rem;
-  color: #9ca3af;
-}
-
-.recent-activities .activity-item:last-child {
-  margin-bottom: 0;
-}
-
 .tenant-activity-wrapper {
   display: flex;
   gap: 2rem;
+}
+
+.tenant-activity-wrapper h3{
+  color: #38bdf8;
 }
 
 
 /* Property Cards */
 .property-cards {
   display: flex;
+  flex-direction: column;
   gap: 2rem;
   margin-top: 1rem;
 }

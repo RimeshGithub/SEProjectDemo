@@ -112,8 +112,8 @@
 
 .join-request-item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .property-divider {

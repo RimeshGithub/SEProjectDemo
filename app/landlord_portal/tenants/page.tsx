@@ -16,6 +16,8 @@ import { Tenant } from '../../types'
 
 export default function TenantsPage() {
   const [tenantsMap, setTenantsMap] = useState({})
+  const [selectedProperty, setSelectedProperty] = useState('')
+  const [allProperties, setAllProperties] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -31,6 +33,7 @@ export default function TenantsPage() {
     setLoading(true)
     const q = query(collection(db, 'properties'), where('createdBy', '==', uid))
     const snapshot = await getDocs(q)
+    setAllProperties(snapshot.docs.map((docSnap) => docSnap.data().name))
 
     const tempMap = {}
 
@@ -64,33 +67,81 @@ export default function TenantsPage() {
       <section className="tenant-section">
         <h2 className="heading-h2">Tenants</h2>
         <p className="heading-p">Here's an overview of your tenants</p>
-        <table className="tenant-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Properties Joined</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.values(tenantsMap).map((tenant : Tenant, idx) => (
-              <tr key={idx}>
-                <td className="name">
-                  <Image
-                    src={tenant.photoURL || defaultProfilePic}
-                    alt="Profile Pic"
-                    className="avatar"
-                    width={35}
-                    height={35}
-                  />
-                  {tenant.name}
-                </td>
-                <td>{tenant.email}</td>
-                <td style={{ width: '400px' }}>{tenant.properties.join(', ')}</td>
-              </tr>
-            ))}
-          </tbody>
+        <label className="heading-p">Select Property: </label>
+        <select
+          value={selectedProperty}
+          onChange={e => setSelectedProperty(e.target.value)}
+          className="dropdown"
+        >
+          <option value="">All</option>
+          {allProperties.map((property) => (
+            <option key={property} value={property}>
+              {property}
+            </option>
+          ))}
+          
+        </select>
+        <table className="tenant-table" style={{ marginTop: '1.5em'}}>
+          {selectedProperty == "" && (
+            <>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Properties Joined</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.values(tenantsMap).map((tenant : Tenant, idx) => (
+                  <tr key={idx}>
+                    <td className="name">
+                      <Image
+                        src={tenant.photoURL || defaultProfilePic}
+                        alt="Profile Pic"
+                        className="avatar"
+                        width={35}
+                        height={35}
+                      />
+                      {tenant.name}
+                    </td>
+                    <td>{tenant.email}</td>
+                    <td style={{ width: '400px' }}>{tenant.properties.join(', ')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </>
+          )}
+
+          {selectedProperty !== "" && (
+            <>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.values(tenantsMap).filter((tenant : Tenant) => tenant.properties.includes(selectedProperty)).map((tenant : Tenant, idx) => (
+                  <tr key={idx}>
+                    <td className="name">
+                      <Image
+                        src={tenant.photoURL || defaultProfilePic}
+                        alt="Profile Pic"
+                        className="avatar"
+                        width={35}
+                        height={35}
+                      />
+                      {tenant.name}
+                    </td>
+                    <td>{tenant.email}</td>
+                  </tr>
+                  ))}
+                </tbody>
+            </>
+          )}
+
         </table>
+        {Object.keys(tenantsMap).length === 0 && <p className="no-tenants" style={{ textAlign: 'center' }}>No tenants found</p>}
       </section>
     </div>
   )
