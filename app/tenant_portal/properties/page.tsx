@@ -222,7 +222,9 @@ export default function PropertiesPage() {
                       <summary className="span" style={{ cursor: 'pointer' }}>
                         <FaInfoCircle /><h4>Description</h4>
                       </summary>
-                      {property.description}
+                      {property.description.split('\n').map((line, index) => (
+                        <span key={index}>{line}<br /></span>
+                      ))}
                     </details>
                   }
                   {requestToJoin[property.id] && !joinRequestedMap[property.id] && (
@@ -287,7 +289,9 @@ export default function PropertiesPage() {
                       <summary className="span" style={{ cursor: 'pointer' }}>
                         <FaInfoCircle /><h4>Description</h4>
                       </summary>
-                      {property.description}
+                      {property.description.split('\n').map((line, index) => (
+                        <span key={index}>{line}<br /></span>
+                      ))}
                     </details>
                   }
                 </li>

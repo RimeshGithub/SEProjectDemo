@@ -258,7 +258,12 @@ export default function PropertiesPage() {
                         <summary className="span" style={{ cursor: 'pointer' }}>
                           <FaInfoCircle /><h4>Description</h4>
                         </summary>
-                        {property.description}
+                        {property.description.split(/\n/).map((part, i) => (
+                          <span key={i}>
+                            {part}
+                            <br />
+                          </span>
+                        ))}
                       </details> 
                   )}
 
@@ -324,7 +329,12 @@ export default function PropertiesPage() {
                         <summary className="span" style={{ cursor: 'pointer' }}>
                           <FaInfoCircle /><h4>Request Details</h4>
                         </summary>
-                        {req.request}
+                        {req.request.split(/\n/).map((part, i) => (
+                          <span key={i}>
+                            {part}
+                            <br />
+                          </span>
+                        ))}
                       </details>
                     </small>
                   )}
